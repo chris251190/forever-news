@@ -91,8 +91,15 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $zip = & tools/Build-DataRelease.ps1
+          # Version of this data update = version of the released code + a counter:
+          # number of earlier data updates since the "released" tag, plus one (0.1.7.1, 0.1.7.2, ...)
+          $base = ([regex]::Match((git show released:ForeverNews/ForeverNews.toc | Out-String), '(?m)^## Version:\s*(\S+)')).Groups[1].Value
+          $n    = [int](git rev-list --count --grep='^Update patch notes (data)' released..HEAD) + 1
+          $dataVersion = "$base.$n"
+          Write-Host "Data version: $dataVersion"
+          $zip = & tools/Build-DataRelease.ps1 -DataVersion $dataVersion
           "zip=$zip" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
+          "version=$dataVersion" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
 
       - name: Upload to CurseForge
         if: steps.fetch.outputs.changed == 'true'
@@ -101,7 +108,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $dry = '${{ inputs.dry_run }}' -eq 'true'
           $gen = ([regex]::Match((Get-Content ForeverNews/News.lua -Raw -Encoding UTF8), 'generated = "([^"]*)"')).Groups[1].Value
-          $ver = ([regex]::Match((git show released:ForeverNews/ForeverNews.toc | Out-String), '(?m)^## Version:\s*(\S+)')).Groups[1].Value
+          $ver = '${{ steps.build.outputs.version }}'
           $psArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/Upload.ps1',
                     '-PackagePath','${{ steps.build.outputs.zip }}',
                     '-DisplayName',"Forever News $ver (patch notes of $gen)",
@@ -118,6 +125,7 @@ jobs:
           git config user.name  "forever-news-bot"
           git config user.email "forever-news-bot@users.noreply.github.com"
           git add ForeverNews/News.lua
-          git commit -m "Update patch notes (data)"
+          # --allow-empty: every upload leaves exactly one such commit, because they are counted for the version number
+          git commit --allow-empty -m "Update patch notes (data)"
           git pull --rebase
           git push

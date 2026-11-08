@@ -6,7 +6,8 @@
 # Usage: $zip = & tools\Build-DataRelease.ps1 [-OutDir path] [-Tag released]
 param(
     [string]$OutDir = (Join-Path $PSScriptRoot '..\build'),
-    [string]$Tag    = 'released'
+    [string]$Tag    = 'released',
+    [string]$DataVersion = ''   # e.g. 0.1.7.2: written into the toc and the file name, so apps see a NEW version
 )
 $ErrorActionPreference = 'Stop'
 
@@ -37,8 +38,17 @@ try {
 
     $version = ([regex]::Match((Get-Content (Join-Path $pkg 'ForeverNews.toc') -Raw), '(?m)^## Version:\s*(\S+)')).Groups[1].Value
     if (-not $version) { throw "No '## Version:' in the toc of tag '$Tag'" }
-    $stamp = Get-Date -Format 'yyyyMMdd-HHmm'
-    $zip = Join-Path $OutDir "ForeverNews-$version-data-$stamp.zip"
+    if ($DataVersion) {
+        # a data update gets its own, higher version number (the code itself stays that of the released version)
+        $tocPath = Join-Path $pkg 'ForeverNews.toc'
+        $tocText = [IO.File]::ReadAllText($tocPath)
+        $tocNew  = [regex]::Replace($tocText, '(?m)^## Version:\s*\S+', "## Version: $DataVersion")
+        [IO.File]::WriteAllText($tocPath, $tocNew, (New-Object System.Text.UTF8Encoding $false))
+        $zip = Join-Path $OutDir "ForeverNews-$DataVersion.zip"
+    } else {
+        $stamp = Get-Date -Format 'yyyyMMdd-HHmm'
+        $zip = Join-Path $OutDir "ForeverNews-$version-data-$stamp.zip"
+    }
     if (Test-Path $zip) { Remove-Item $zip -Force }
     Compress-Archive -Path $pkg -DestinationPath $zip
     Write-Host "Data package: $zip (code of $version + newest News.lua)"
