@@ -77,8 +77,11 @@ jobs:
         if: steps.fetch.outputs.changed == 'true'
         shell: powershell
         run: |
-          git --no-pager diff --stat
-          git --no-pager diff -U0 -- ForeverNews/News.lua | Select-Object -First 80
+          # the whole diff is read first (no early pipe close, which would make git fail); line-ending noise is ignored
+          $d = git --no-pager diff -U0 --ignore-space-at-eol -- ForeverNews/News.lua | Out-String
+          if ($d.Length -gt 6000) { $d = $d.Substring(0, 6000) + "`n... (cut)" }
+          Write-Host $d
+          exit 0
 
       - name: Build data package
         if: steps.fetch.outputs.changed == 'true'
