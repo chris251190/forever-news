@@ -4,7 +4,7 @@
 ## Notes: Patch notes, hotfixes and announcements for WoW Forever in-game: filter by class, search, short summaries.
 ## Notes-deDE: Patch Notes, Hotfixes und Ankündigungen für WoW Forever im Spiel: nach Klasse filtern, suchen, kurze Zusammenfassungen.
 ## Author: Christian
-## Version: 0.1.5
+## Version: 0.1.6
 ## SavedVariables: ForeverNewsDB
 
 News.lua

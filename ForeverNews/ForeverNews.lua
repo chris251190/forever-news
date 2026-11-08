@@ -269,7 +269,8 @@ local function ToRich(blocks, skipHead)
         elseif k == "blank" then out[#out + 1] = ""
         elseif k == "hdr" then out[#out + 1] = ""; out[#out + 1] = "|cff4dd2ff" .. EscapePipes(b.text) .. "|r"
         elseif k == "ohdr" then out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"   -- heading of Blizzard's original text
-        elseif k == "note" then out[#out + 1] = "|cffb0b0b0" .. EscapePipes(b.text) .. "|r"
+        elseif k == "note" then
+            if not b.plainOnly then out[#out + 1] = "|cffb0b0b0" .. EscapePipes(b.text) .. "|r" end   -- plainOnly: only in the copy text
         elseif k == "patch" then out[#out + 1] = ""; out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"
         elseif k == "class" then
             local c = RAID_CLASS_COLORS and RAID_CLASS_COLORS[b.token]
@@ -427,7 +428,7 @@ sumTitle:SetTextColor(0.30, 0.82, 1)
 sumTitle:SetPoint("LEFT", sumIcon, "RIGHT", 6, 0)
 local sumTag = sumHead:CreateFontString(nil, "OVERLAY")
 sumTag:SetFont(STANDARD_TEXT_FONT, 11, "")
-sumTag:SetTextColor(0.65, 0.65, 0.65)
+sumTag:SetTextColor(0.5, 0.5, 0.5)
 sumTag:SetPoint("RIGHT", -8, 0)
 local sumReader = sumBox:CreateFontString(nil, "OVERLAY")
 sumReader:SetFont(STANDARD_TEXT_FONT, 14, "")
@@ -505,6 +506,12 @@ local function Relayout()
 end
 textScroll:SetScript("OnSizeChanged", Relayout)
 
+sumHead:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText(L("Short summary by an AI. The details below are what counts."), 1, 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+sumHead:SetScript("OnLeave", GameTooltip_Hide)
 sumHead:SetScript("OnClick", function()
     if db().overviewOnly then return end
     db().sumCollapsed = not db().sumCollapsed
@@ -689,7 +696,8 @@ local function AddSummary(blocks, item, classFilter)
         return false
     end
     blocks[#blocks + 1] = { k = "hdr", text = L("Key points") }
-    blocks[#blocks + 1] = { k = "note", text = L("Short summary by an AI. The details below are what counts.") }
+    -- the AI hint is shown once, small, in the box header (with this sentence as tooltip); the copy text keeps it
+    blocks[#blocks + 1] = { k = "note", plainOnly = true, text = L("Short summary by an AI. The details below are what counts.") }
     if classFilter == "ALL" or classFilter == nil then
         for _, line in ipairs(s.overall or {}) do blocks[#blocks + 1] = { k = "li", indent = 0, text = line } end
         for _, token in ipairs(CLASS_ORDER) do
