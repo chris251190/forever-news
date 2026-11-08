@@ -14,9 +14,9 @@
 name: Data update
 
 on:
-  # The hourly schedule is switched on once the repository is public (free Actions minutes):
-  # schedule:
-  #   - cron: '23 * * * *'
+  # Hourly (GitHub may delay scheduled runs by a few minutes). Free because the repository is public.
+  schedule:
+    - cron: '23 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
