@@ -652,14 +652,23 @@ local function MakeFilterButton(token, x, width)
         fs:SetText(token == "ALL" and L("All") or ClassLabel(token):sub(1, 3))
     end
 
-    b:SetScript("OnClick", function()
-        db().classFilter = token
+    b:SetScript("OnClick", function(self)
+        -- clicking the class that is already active switches the filter off again ("All")
+        if token ~= "ALL" and db().classFilter == token then
+            db().classFilter = "ALL"
+        else
+            db().classFilter = token
+        end
         UpdateFilterButtons()
         refresh()
+        if self:IsMouseOver() then self:GetScript("OnEnter")(self) end -- show the updated hint right away
     end)
     b:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
         GameTooltip:SetText(token == "ALL" and L("All classes") or ClassLabel(token))
+        if token ~= "ALL" and db().classFilter == token then
+            GameTooltip:AddLine(L("Click again to show all classes"), 0.7, 0.7, 0.7)
+        end
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave", GameTooltip_Hide)

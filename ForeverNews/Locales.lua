@@ -27,6 +27,7 @@ ForeverNewsLocales = {
     ["Shows the text selected. Then just press Ctrl+C."] = "Zeigt den Text markiert an. Dann einfach Strg+C drücken.",
     ["All"] = "Alle",
     ["All classes"] = "Alle Klassen",
+    ["Click again to show all classes"] = "Nochmal klicken, um alle Klassen zu zeigen",
     ["Summary"] = "Zusammenfassung",
     ["Details"] = "Details",
 
