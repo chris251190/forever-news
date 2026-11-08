@@ -68,6 +68,13 @@ jobs:
           Write-Host "Changed: $changed"
           "changed=$($changed.ToString().ToLower())" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
 
+      - name: Show what changed
+        if: steps.fetch.outputs.changed == 'true'
+        shell: powershell
+        run: |
+          git --no-pager diff --stat
+          git --no-pager diff -U0 -- ForeverNews/News.lua | Select-Object -First 80
+
       - name: Build data package
         if: steps.fetch.outputs.changed == 'true'
         id: build
