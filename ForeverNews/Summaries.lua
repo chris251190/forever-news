@@ -137,40 +137,6 @@ ForeverNewsSummaries = {
     },
   },
 
-  -- Patch Notes, November 4, 2026: small UI fixes
-  [2026110410] = {
-    date = "2026-11-04",
-    asOf = "2026-11-08",
-
-    en = {
-      overall = {
-        "Swing Timer bar no longer fades out by distance until the swing finishes.",
-        "Combined bag: slot background art now shows which bag a slot belongs to.",
-        "Nameplates now correctly show Elite status.",
-        "Debuff icons on nameplates can now be clicked through.",
-        "Spellbook and Talents frame opens at the same height as other panels.",
-        "Combat mode makes the Spellbook frame smaller.",
-        "PvP scoreboard display was updated.",
-        "Killing a player at the Honor cap no longer shows honor gained text.",
-        "Keybinds menu: hovering over an action bar keybind highlights that button.",
-      },
-    },
-
-    de = {
-      overall = {
-        "Die Kampftempo-Leiste blendet sich wegen Entfernung erst nach dem Schlag aus.",
-        "Kombinierte Tasche: Der Hintergrund zeigt jetzt, zu welcher Tasche ein Slot gehört.",
-        "Namensschilder zeigen jetzt richtig an, wenn ein Gegner Elite ist.",
-        "Debuff-Symbole auf Namensschildern lassen sich jetzt durchklicken.",
-        "Zauberbuch und Talente öffnen sich jetzt auf gleicher Höhe wie andere Fenster.",
-        "Im Kampfmodus wird das Zauberbuch-Fenster kleiner angezeigt.",
-        "Die PvP-Anzeigetafel wurde überarbeitet.",
-        "Tötest du einen Spieler am Ehre-Limit, wird kein Ehre-Text mehr angezeigt.",
-        "Tastenbelegungs-Menü: Zeigt beim Drüberfahren den passenden Button auf der Leiste.",
-      },
-    },
-  },
-
   -- Announcement "Class Tuning Incoming - November 10" (Blizzard forum, November 6, 2026): PLANNED, not live yet
   [2404092] = {
     date = "2026-11-06",
