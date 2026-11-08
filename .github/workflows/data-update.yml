@@ -1,0 +1,106 @@
+# Fetches the newest WoW Forever patch notes and publishes them to players as a DATA update.
+#
+# What it does (only when the notes really changed):
+#   1. runs tools/Update-News.ps1 (writes ForeverNews/News.lua)
+#   2. builds a package = code of the last RELEASED version (git tag "released") + the new News.lua
+#   3. uploads that package to CurseForge  (players get it through their CurseForge app / WowUp)
+#   4. commits the new News.lua to the repository
+#
+# It NEVER publishes new addon code and never touches Summaries.lua: those go out with a normal,
+# approved release (tools/Upload.ps1 + moving the "released" tag).
+#
+# Needs the repository secret CURSEFORGE_API_TOKEN.
+# Manual test: Actions -> "Data update" -> Run workflow with dry_run = true (nothing is uploaded or committed).
+name: Data update
+
+on:
+  # The hourly schedule is switched on once the repository is public (free Actions minutes):
+  # schedule:
+  #   - cron: '23 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: fetch and build, but do not upload or commit'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: windows-latest
+    env:
+      CURSEFORGE_API_TOKEN: ${{ secrets.CURSEFORGE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # also fetches the "released" tag
+
+      - name: Fetch patch notes
+        id: fetch
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $news = 'ForeverNews/News.lua'
+          $backup = Join-Path $env:RUNNER_TEMP 'News.before.lua'
+          Copy-Item $news $backup
+
+          & powershell -NoProfile -ExecutionPolicy Bypass -File tools/Update-News.ps1
+          if ($LASTEXITCODE -ne 0) { Copy-Item $backup $news -Force; throw "Update-News.ps1 failed ($LASTEXITCODE)" }
+
+          function Count-Items($p) { ([regex]::Matches((Get-Content $p -Raw -Encoding UTF8), '(?m)^\s+id = \d+,')).Count }
+          function Normalized($p)  { (Get-Content $p -Raw -Encoding UTF8) -replace '(?m)^\s*generated = "[^"]*",\r?\n', '' }
+
+          $nBefore = Count-Items $backup
+          $nAfter  = Count-Items $news
+          Write-Host "Entries: before=$nBefore after=$nAfter"
+          if ($nAfter -lt $nBefore) {
+            # Blizzard probably changed its page format: keep the old data, tell the owner (the run fails -> e-mail)
+            Copy-Item $backup $news -Force
+            throw "Fewer entries than before ($nAfter < $nBefore). Data left unchanged."
+          }
+          $changed = (Normalized $backup) -ne (Normalized $news)
+          Write-Host "Changed: $changed"
+          "changed=$($changed.ToString().ToLower())" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
+
+      - name: Build data package
+        if: steps.fetch.outputs.changed == 'true'
+        id: build
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = & tools/Build-DataRelease.ps1
+          "zip=$zip" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
+
+      - name: Upload to CurseForge
+        if: steps.fetch.outputs.changed == 'true'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dry = '${{ inputs.dry_run }}' -eq 'true'
+          $gen = ([regex]::Match((Get-Content ForeverNews/News.lua -Raw -Encoding UTF8), 'generated = "([^"]*)"')).Groups[1].Value
+          $ver = ([regex]::Match((git show released:ForeverNews/ForeverNews.toc | Out-String), '(?m)^## Version:\s*(\S+)')).Groups[1].Value
+          $psArgs = @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/Upload.ps1',
+                    '-PackagePath','${{ steps.build.outputs.zip }}',
+                    '-DisplayName',"Forever News $ver (patch notes of $gen)",
+                    '-Changelog',"Updated patch notes ($gen). No code changes.")
+          if (-not $dry) { $psArgs += '-Upload' }
+          & powershell @psArgs
+          if ($LASTEXITCODE -ne 0) { throw "Upload.ps1 failed ($LASTEXITCODE)" }
+
+      - name: Commit new patch notes
+        if: steps.fetch.outputs.changed == 'true' && inputs.dry_run != true
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name  "forever-news-bot"
+          git config user.email "forever-news-bot@users.noreply.github.com"
+          git add ForeverNews/News.lua
+          git commit -m "Update patch notes (data)"
+          git pull --rebase
+          git push

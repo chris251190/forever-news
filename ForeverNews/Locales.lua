@@ -32,8 +32,11 @@ ForeverNewsLocales = {
 
     -- header and text
     ["Status as of %s"] = "Stand %s",
+    ["Patch notes as of %s"] = "Patch Notes von %s",
     ["Announcement of %s"] = "Ankündigung vom %s",
     ["Key points"] = "Das Wichtigste",
+    ["Written by an AI"] = "Von einer KI geschrieben",
+    ["Original patch notes (Blizzard)"] = "Originale Patch Notes (Blizzard)",
     ["Short summary by an AI. The details below are what counts."] = "Kurz erklärt von einer KI. Die Details unten gelten.",
     ["The summary is outdated. Please read the details below."] = "Die Kurzfassung ist veraltet. Bitte die Details unten lesen.",
     ['Search "%s"'] = 'Suche "%s"',

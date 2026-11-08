@@ -188,6 +188,7 @@ local function ToPlain(blocks)
         if k == "title" or k == "meta" then out[#out + 1] = b.text
         elseif k == "blank" then out[#out + 1] = ""
         elseif k == "hdr" then out[#out + 1] = ""; out[#out + 1] = "=== " .. b.text .. " ==="
+        elseif k == "ohdr" then out[#out + 1] = ""; out[#out + 1] = "=== " .. b.text .. " ==="
         elseif k == "note" then out[#out + 1] = "(" .. b.text .. ")"
         elseif k == "class" or k == "group" then out[#out + 1] = ""; out[#out + 1] = "== " .. b.text .. " =="
         elseif k == "sub" then out[#out + 1] = "-- " .. b.text .. " --"
@@ -267,6 +268,7 @@ local function ToRich(blocks, skipHead)
         elseif k == "meta" then out[#out + 1] = "|cff9a9a9a" .. EscapePipes(b.text) .. "|r"
         elseif k == "blank" then out[#out + 1] = ""
         elseif k == "hdr" then out[#out + 1] = ""; out[#out + 1] = "|cff4dd2ff" .. EscapePipes(b.text) .. "|r"
+        elseif k == "ohdr" then out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"   -- heading of Blizzard's original text
         elseif k == "note" then out[#out + 1] = "|cffb0b0b0" .. EscapePipes(b.text) .. "|r"
         elseif k == "patch" then out[#out + 1] = ""; out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"
         elseif k == "class" then
@@ -397,6 +399,45 @@ reader:SetJustifyV("TOP")
 reader:SetSpacing(6)   -- generous line spacing: easier to scan
 reader:SetWordWrap(true)
 
+-- The AI summary lives in its own tinted box with a blue bar on the left, above Blizzard's original text.
+-- Clicking the box header folds it up (the choice is saved in the settings).
+local sumBox = CreateFrame("Frame", nil, content)
+sumBox:Hide()
+local sumTint = sumBox:CreateTexture(nil, "BACKGROUND")
+sumTint:SetAllPoints()
+sumTint:SetColorTexture(0.10, 0.22, 0.34, 0.40)
+local sumBar = sumBox:CreateTexture(nil, "BORDER")
+sumBar:SetColorTexture(0.30, 0.80, 1, 0.9)
+sumBar:SetWidth(3)
+sumBar:SetPoint("TOPLEFT")
+sumBar:SetPoint("BOTTOMLEFT")
+local SUM_HEAD = 26
+local sumHead = CreateFrame("Button", nil, sumBox)
+sumHead:SetHeight(SUM_HEAD)
+sumHead:SetPoint("TOPLEFT", 3, 0)
+sumHead:SetPoint("TOPRIGHT")
+sumHead:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+if sumHead:GetHighlightTexture() then sumHead:GetHighlightTexture():SetAlpha(0.15) end
+local sumIcon = sumHead:CreateTexture(nil, "ARTWORK")
+sumIcon:SetSize(14, 14)
+sumIcon:SetPoint("LEFT", 8, 0)
+local sumTitle = sumHead:CreateFontString(nil, "OVERLAY")
+sumTitle:SetFont(STANDARD_TEXT_FONT, 15, "")
+sumTitle:SetTextColor(0.30, 0.82, 1)
+sumTitle:SetPoint("LEFT", sumIcon, "RIGHT", 6, 0)
+local sumTag = sumHead:CreateFontString(nil, "OVERLAY")
+sumTag:SetFont(STANDARD_TEXT_FONT, 11, "")
+sumTag:SetTextColor(0.65, 0.65, 0.65)
+sumTag:SetPoint("RIGHT", -8, 0)
+local sumReader = sumBox:CreateFontString(nil, "OVERLAY")
+sumReader:SetFont(STANDARD_TEXT_FONT, 14, "")
+sumReader:SetPoint("TOPLEFT", 12, -(SUM_HEAD + 2))
+sumReader:SetJustifyH("LEFT")
+sumReader:SetJustifyV("TOP")
+sumReader:SetSpacing(6)
+sumReader:SetWordWrap(true)
+local hasSum = false
+
 -- ... and copy view (read-only EditBox; select + Ctrl+C)
 local copyScroll = MakeScroll(frame)
 copyScroll:SetPoint("TOPLEFT", textScroll, "TOPLEFT")
@@ -439,16 +480,48 @@ local function Relayout()
     local w = (textScroll:GetWidth() or 0)
     if w < 50 then w = 560 end -- layout not resolved yet; OnSizeChanged will correct this
     content:SetWidth(w)
+    local y = 4
+    if hasSum then
+        -- with "Summary only" ticked the box always stays open (it is the only thing to read)
+        local collapsed = db().sumCollapsed and not db().overviewOnly
+        sumBox:Show()
+        sumReader:SetWidth(w - 40)
+        sumReader:SetShown(not collapsed)
+        sumIcon:SetTexture(collapsed and "Interface\\Buttons\\UI-PlusButton-Up" or "Interface\\Buttons\\UI-MinusButton-Up")
+        local h = SUM_HEAD
+        if not collapsed then h = SUM_HEAD + sumReader:GetStringHeight() + 16 end
+        sumBox:ClearAllPoints()
+        sumBox:SetPoint("TOPLEFT", content, "TOPLEFT", 4, -y)
+        sumBox:SetSize(w - 14, h)
+        y = y + h + 14
+    else
+        sumBox:Hide()
+    end
+    reader:ClearAllPoints()
+    reader:SetPoint("TOPLEFT", content, "TOPLEFT", 6, -y)
     reader:SetWidth(w - 14)
-    content:SetHeight(math.max(50, reader:GetStringHeight() + 24))
+    content:SetHeight(math.max(50, y + reader:GetStringHeight() + 24))
     edit:SetWidth(w - 4)
 end
 textScroll:SetScript("OnSizeChanged", Relayout)
 
-local function SetBody(rich, plain, title, meta)
+sumHead:SetScript("OnClick", function()
+    if db().overviewOnly then return end
+    db().sumCollapsed = not db().sumCollapsed
+    Relayout()
+end)
+
+-- sumRich/sumLabel are optional: the AI summary box (hidden when there is none)
+local function SetBody(rich, plain, title, meta, sumRich, sumLabel)
     currentRich, currentPlain = rich, plain
     headTitle:SetText(title or "")
     headMeta:SetText(meta or "")
+    hasSum = sumRich ~= nil
+    if hasSum then
+        sumTitle:SetText(sumLabel or "")
+        sumTag:SetText(L("Written by an AI"))
+        sumReader:SetText(sumRich)
+    end
     reader:SetText(rich)
     Relayout()
     textScroll:SetVerticalScroll(0)
@@ -504,6 +577,16 @@ local copyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 copyBtn:SetSize(130, 22)
 copyBtn:SetPoint("BOTTOMRIGHT", inset, "BOTTOMRIGHT", -8, 6)
 copyBtn:SetText(L("Copy text"))
+
+-- when the patch notes in this addon were last changed (the addon cannot go online, so this is the only
+-- hint for players whether their copy might be behind)
+local dataInfo = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+dataInfo:SetPoint("RIGHT", copyBtn, "LEFT", -12, 0)
+dataInfo:SetJustifyH("RIGHT")
+do
+    local day = tostring(data.generated or ""):match("^(%d+%-%d+%-%d+)")
+    dataInfo:SetText(day and L("Patch notes as of %s"):format(ShortDate(day)) or "")
+end
 
 local function SetCopyMode(on)
     copyMode = on
@@ -631,6 +714,7 @@ refresh = function()
     local d = db()
     local query = CurrentQuery()
     local blocks = {}
+    local sum = {}   -- blocks of the AI summary box (only used outside of searching)
     local filterName = d.classFilter == "ALL" and L("All classes") or ClassLabel(d.classFilter)
 
     if query then
@@ -663,11 +747,11 @@ refresh = function()
         blocks[1] = { k = "title", text = DisplayName(item) }
         blocks[2] = { k = "meta", text = MetaLine(item, filterName, d.classFilter ~= "ALL") }
 
-        local hasSummary = AddSummary(blocks, item, d.classFilter)
+        local hasSummary = AddSummary(sum, item, d.classFilter)
         local showDetails = not (d.overviewOnly and hasSummary)
 
         if showDetails then
-            if hasSummary then blocks[#blocks + 1] = { k = "hdr", text = L("All changes in detail") } end
+            if hasSummary then blocks[#blocks + 1] = { k = "ohdr", text = L("Original patch notes (Blizzard)") } end
             local n = AddSections(blocks, item, d.classFilter, nil)
             if n == 0 then blocks[#blocks + 1] = { k = "note", text = L("No changes for this selection in this patch.") } end
             if d.classFilter ~= "ALL" then
@@ -683,7 +767,18 @@ refresh = function()
         blocks[#blocks + 1] = { k = "blank" }
         blocks[#blocks + 1] = { k = "meta", text = L("Source: ") .. item.url }
     end
-    SetBody(ToRich(blocks, true), ToPlain(blocks), blocks[1].text, blocks[2].text)
+    -- the summary box gets its own text; for copying, everything goes back together in reading order
+    local sumRich, sumLabel, all = nil, nil, blocks
+    if #sum > 0 then
+        sumLabel = sum[1].text                      -- the "Key points" heading becomes the box header
+        local rest = {}
+        for i = 2, #sum do rest[#rest + 1] = sum[i] end
+        sumRich = ToRich(rest, false)
+        all = { blocks[1], blocks[2] }
+        for _, b in ipairs(sum) do all[#all + 1] = b end
+        for i = 3, #blocks do all[#all + 1] = blocks[i] end
+    end
+    SetBody(ToRich(blocks, true), ToPlain(all), blocks[1].text, blocks[2].text, sumRich, sumLabel)
     if copyMode then edit:SetFocus(); edit:HighlightText() end
 end
 
