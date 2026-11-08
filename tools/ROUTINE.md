@@ -15,6 +15,7 @@ Arbeitsordner = das Repository `C:\Users\chris\Documents\ForeverNews-Repo` (der 
    - seine `id` in `Summaries.lua` fehlt, oder
    - `date` der Zusammenfassung nicht zum `date` des Eintrags passt (der Eintrag wurde erweitert, z. B. die Hotfixes).
    Nur Einträge zusammenfassen, die **höchstens 7 Tage alt** sind (Datum im Eintrag). Ältere Einträge, vor allem die Beta-Notes aus dem Oktober, bekommen KEINE Zusammenfassung, auch wenn sie noch keine haben.
+   **Auch jüngere Einträge bekommen keine Zusammenfassung, wenn sie nur aus wenigen kleinen Korrekturen ohne Zahlen bestehen** (z. B. der Patch vom 4. November: 9 UI-Kleinigkeiten). Die Kurzfassung würde nur das Original wiederholen. Bei Zweifel: weglassen und im Bericht erwähnen. Außerdem nie Fachwörter ins Deutsche übersetzen, deren offizielle Übersetzung du nicht kennst (z. B. "Swing Timer"); im Zweifel das englische Wort lassen.
    Gibt es nichts Neues: Routine beenden, kurz melden "keine neuen Patch Notes".
 3. **Zusammenfassung schreiben** (nur für die Einträge aus Schritt 2), Format wie die vorhandenen Einträge in `Summaries.lua`:
    - **Einfache Sprache:** kurze Sätze, einfache Wörter, eine Aussage pro Stichpunkt (höchstens etwa 90 Zeichen), natürlich geschrieben, kein Amtsdeutsch. Zahlen genau aus dem Original ("+110 %", "30 Sek."). Die wichtigste Information zuerst.
