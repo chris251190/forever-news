@@ -14,9 +14,10 @@
 name: Data update
 
 on:
-  # Hourly (GitHub may delay scheduled runs by a few minutes). Free because the repository is public.
+  # Three times an hour: GitHub starts scheduled runs late or skips some, so one trigger per hour left big gaps.
+  # Free because the repository is public. Runs never overlap (see "concurrency" below).
   schedule:
-    - cron: '23 * * * *'
+    - cron: '7,27,47 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
