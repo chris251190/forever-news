@@ -26,9 +26,14 @@ Arbeitsordner = das Repository `C:\Users\chris\Documents\ForeverNews-Repo` (der 
    - Felder: `date` = Datum des Eintrags aus `News.lua`, `asOf` = heutiges Datum.
    - Bestehende, noch gültige Zusammenfassungen unverändert lassen.
 4. **Prüfen:** `Summaries.lua` muss gültiges Lua 5.1 bleiben (Klammern/Kommas/Anführungszeichen in Strings mit `\"` escapen). Jede `id` muss in `News.lua` existieren.
+   **Abgleich mit dem Original (Pflicht):** Jeden neuen Stichpunkt gegen den Originaltext in `News.lua` prüfen. Für jeden Punkt feststellen: (a) Zahlen und Namen stimmen exakt, (b) nichts hinzugefügt, was nicht im Original steht, (c) keine Deutung, wo das Original mehrdeutig ist, (d) keine geratenen deutschen Fachwörter. Punkte mit Zweifel zuerst umformulieren oder streichen; was übrig bleibt, im Bericht als "Zweifelsfall" nennen (Punkt, Grund, Originalsatz).
 5. **Version nur erhöhen, wenn nötig:** Steht die aktuelle Version aus `ForeverNews.toc` noch NICHT in `tools\uploaded.json`, ist sie unveröffentlicht: dann die Version NICHT erhöhen, alle neuen Änderungen gehören in diese Version. Nur wenn die Version schon in `uploaded.json` steht, die Patch-Stelle von `## Version: x.y.z` um 1 erhöhen.
 6. **Paket bauen:** `powershell -NoProfile -ExecutionPolicy Bypass -File tools\Package.ps1`
-7. **Melden (NICHT hochladen):** Kurze Nachricht an den Nutzer: welche Patches neu sind, die neuen Zusammenfassungen im Wortlaut, Pfad zur ZIP-Datei. Der Nutzer gibt den Upload zu CurseForge frei.
+7. **Melden (NICHT hochladen):** Kurze Nachricht an den Nutzer. Der Nutzer will nicht jede Zusammenfassung durchlesen, sondern nur die Zweifelsfälle sehen:
+   - Welche Patches neu sind (und welche bewusst KEINE Zusammenfassung bekamen, mit Grund).
+   - Ergebnis des Abgleichs aus Schritt 4: entweder "Geprüft, keine Auffälligkeiten" oder die Liste der Zweifelsfälle (Punkt, Grund, Originalsatz).
+   - Die neuen Zusammenfassungen NICHT im Wortlaut wiederholen, nur sagen, in welchen Einträgen sie stehen (wer sie lesen will, fragt danach).
+   - Pfad zur ZIP-Datei. Der Nutzer gibt den Upload zu CurseForge frei.
 
 ## Regeln
 
