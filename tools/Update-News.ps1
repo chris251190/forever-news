@@ -263,8 +263,13 @@ try {
             $tid = [int]$p.topic_id
             if ($tid -eq $devThreadId) { continue }
             $title = $titles[$tid]
-            if ($title -notmatch 'Class|Tuning|Hotfix|Patch|Notes|Update|Balance|Changes') { continue }
-            if ($title -match 'Known Issues') { continue }   # bug lists are not patch notes
+            # Blizzard's announcements either say what they are ("Hotfixes", "Class Tuning") or carry a date in the
+            # title ("Dungeon Enemy XP Increased - November 8"): accept both
+            # (dated titles only count while they are recent, so old event posts like "Stress Test on October 21" do not pile up)
+            $ageDays = ((Get-Date).ToUniversalTime() - [datetime]::Parse($p.created_at, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AdjustToUniversal)).TotalDays
+            $isDated = ($title -match '(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}') -and ($ageDays -le 10)
+            if ($title -notmatch 'Class|Tuning|Hotfix|Patch|Notes|Update|Balance|Changes' -and -not $isDated) { continue }
+            if ($title -match 'Known Issues|Guidelines|Bug Report') { continue }   # bug lists and rules are not patch notes
             if (@($entries | Where-Object { $_.Title -eq $title }).Count -gt 0) { continue }   # already covered (e.g. hotfix article)
             $topic = Invoke-RestMethod -Uri "$forumRoot/t/$tid.json" -TimeoutSec 30 -Headers $hdr
             $first = $topic.post_stream.posts[0]

@@ -57,7 +57,8 @@ jobs:
           & powershell -NoProfile -ExecutionPolicy Bypass -File tools/Update-News.ps1
           if ($LASTEXITCODE -ne 0) { Copy-Item $backup $news -Force; throw "Update-News.ps1 failed ($LASTEXITCODE)" }
 
-          function Count-Items($p) { ([regex]::Matches((Get-Content $p -Raw -Encoding UTF8), '(?m)^\s+id = \d+,')).Count }
+          # announcements age out of the fetch window after a while, so only patch notes and hotfixes are counted here
+          function Count-Items($p) { ([regex]::Matches((Get-Content $p -Raw -Encoding UTF8), '(?m)^\s+id = \d+, date = "[^"]*", category = "(?!Announcement)')).Count }
           # compare without the "generated" timestamp and without line-ending differences (CRLF/LF)
           function Normalized($p)  { ((Get-Content $p -Raw -Encoding UTF8) -replace "`r", '') -replace '(?m)^\s*generated = "[^"]*",\n', '' }
 
