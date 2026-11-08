@@ -23,6 +23,10 @@ on:
         description: 'Dry run: fetch and build, but do not upload or commit'
         type: boolean
         default: true
+      force:
+        description: 'Test only: treat the notes as changed even if they are not (use together with dry_run)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -54,7 +58,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Copy-Item $backup $news -Force; throw "Update-News.ps1 failed ($LASTEXITCODE)" }
 
           function Count-Items($p) { ([regex]::Matches((Get-Content $p -Raw -Encoding UTF8), '(?m)^\s+id = \d+,')).Count }
-          function Normalized($p)  { (Get-Content $p -Raw -Encoding UTF8) -replace '(?m)^\s*generated = "[^"]*",\r?\n', '' }
+          # compare without the "generated" timestamp and without line-ending differences (CRLF/LF)
+          function Normalized($p)  { ((Get-Content $p -Raw -Encoding UTF8) -replace "`r", '') -replace '(?m)^\s*generated = "[^"]*",\n', '' }
 
           $nBefore = Count-Items $backup
           $nAfter  = Count-Items $news
@@ -64,7 +69,7 @@ jobs:
             Copy-Item $backup $news -Force
             throw "Fewer entries than before ($nAfter < $nBefore). Data left unchanged."
           }
-          $changed = (Normalized $backup) -ne (Normalized $news)
+          $changed = ((Normalized $backup) -ne (Normalized $news)) -or ('${{ inputs.force }}' -eq 'true')
           Write-Host "Changed: $changed"
           "changed=$($changed.ToString().ToLower())" | Out-File -Append -Encoding ascii $env:GITHUB_OUTPUT
 
