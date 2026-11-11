@@ -57,7 +57,7 @@ end
 -- The grey line under the title: the date once, plus what kind of entry it is
 local function MetaLine(item, filterName, classPicked)
     local line = LongDate(item.date)
-    if item.category == "Hotfixes" then line = L("Status as of %s"):format(line) end
+    if item.category == "Hotfixes" then line = L("Hotfixes of %s"):format(line) end   -- one entry per hotfix day
     if item.category == "Announcement" then line = L("Announcement of %s"):format(line) end
     if classPicked then line = line .. "  ·  " .. filterName end
     return line

@@ -34,6 +34,7 @@ ForeverNewsLocales = {
     -- header and text
     ["Status as of %s"] = "Stand %s",
     ["Patch notes as of %s"] = "Patch Notes von %s",
+    ["Hotfixes of %s"] = "Hotfixes vom %s",
     ["Announcement of %s"] = "Ankündigung vom %s",
     ["Key points"] = "Das Wichtigste",
     ["Forever News %s is available (you have %s). Please update it in the CurseForge app."] = "Forever News %s ist verfügbar (du hast %s). Bitte über die CurseForge-App aktualisieren.",

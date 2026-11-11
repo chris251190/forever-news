@@ -243,7 +243,34 @@ foreach ($l in $links) {
     $date = if ($parsed.maxDate) { $parsed.maxDate.ToString('yyyy-MM-dd') } else { $pub }
     $cat  = if ($l.Slug -match 'hotfix') { 'Hotfixes' } else { 'Patch Notes' }
     Write-Host ("  {0}: {1} Abschnitte, {2} Zeilen ({3})" -f $title, $parsed.sections.Count, (Get-LineCount $parsed.sections), $date)
-    [void]$entries.Add([pscustomobject]@{ Id = $l.Id; Title = $title; Date = $date; Cat = $cat; Url = $url; Sections = $parsed.sections })
+    # Blizzard's hotfix article is ONE page that keeps growing; every section says on which day it was added
+    # ("Cooldown Manager / November 6, 2026"). One entry per day, so each hotfix day has its own text, its own
+    # unread mark and its own summary. (If a section has no day, the article stays one entry.)
+    $byDay = $null
+    if ($cat -eq 'Hotfixes') {
+        $dayRx = '(?:^|\s*/\s*)((' + $Months + ') \d{1,2}, \d{4})$'
+        $byDay = [ordered]@{}
+        foreach ($sec in $parsed.sections) {
+            $dm = [regex]::Match([string]$sec.s, $dayRx)
+            if (-not $dm.Success) { $byDay = $null; break }
+            $dd  = [datetime]::ParseExact($dm.Groups[1].Value, 'MMMM d, yyyy', [System.Globalization.CultureInfo]::InvariantCulture)
+            $key = $dd.ToString('yyyy-MM-dd')
+            if (-not $byDay.Contains($key)) { $byDay[$key] = New-Object System.Collections.ArrayList }
+            [void]$byDay[$key].Add([pscustomobject]@{ g = $sec.g; c = $sec.c; s = ([string]$sec.s).Substring(0, $dm.Index); lines = $sec.lines })
+        }
+    }
+    if ($byDay -and $byDay.Count -gt 0) {
+        foreach ($key in $byDay.Keys) {
+            $dd = [datetime]::ParseExact($key, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+            $dayTitle = $dd.ToString('MMMM d, yyyy', [System.Globalization.CultureInfo]::InvariantCulture)
+            $t = if ($title -match ('(' + $Months + ') \d{1,2}, \d{4}$')) { $title -replace ('(' + $Months + ') \d{1,2}, \d{4}$'), $dayTitle } else { "$title - $dayTitle" }
+            $id = [long]$l.Id * 10000 + $dd.Month * 100 + $dd.Day   # stays unique per day and the same on every run
+            Write-Host ("    Tag {0}: {1} Abschnitte" -f $key, $byDay[$key].Count)
+            [void]$entries.Add([pscustomobject]@{ Id = $id; Title = $t; Date = $key; Cat = $cat; Url = $url; Sections = @($byDay[$key]) })
+        }
+    } else {
+        [void]$entries.Add([pscustomobject]@{ Id = $l.Id; Title = $title; Date = $date; Cat = $cat; Url = $url; Sections = $parsed.sections })
+    }
 }
 
 # ---------------------------------------------------------------- 3. staff announcements (forum topics started by Blizzard staff)

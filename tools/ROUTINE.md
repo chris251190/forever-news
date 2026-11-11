@@ -35,6 +35,10 @@ Arbeitsordner = das Repository `C:\Users\chris\Documents\ForeverNews-Repo` (der 
    - Die neuen Zusammenfassungen NICHT im Wortlaut wiederholen, nur sagen, in welchen Einträgen sie stehen (wer sie lesen will, fragt danach).
    - Pfad zur ZIP-Datei. Der Nutzer gibt den Upload zu CurseForge frei.
 
+## Hotfix-Artikel (ein Eintrag pro Tag)
+
+Blizzards Hotfix-Artikel ist eine einzige Seite, die laufend wächst. Update-News.ps1 teilt sie seit 2026-11-11 in **einen Eintrag pro Hotfix-Tag** (Titel "WoW: Forever Hotfixes - November 10, 2026", Datum = der Tag, `id` = Artikel-ID * 10000 + Monat * 100 + Tag, z. B. 243152811110). Jeder Tag wird einzeln zusammengefasst (Schlüssel in `Summaries.lua` = diese id, `date` = der Tag).
+
 ## Regeln
 
 - **Nie hochladen oder veröffentlichen.** Der Upload braucht die Freigabe des Nutzers.

@@ -203,8 +203,8 @@ ForeverNewsSummaries = {
     },
   },
 
-  -- Hotfixes (continuously updated Blizzard article), newest block: November 10, 2026
-  [24315281] = {
+  -- Hotfixes, November 10, 2026 (one entry per hotfix day; id = article id * 10000 + month/day)
+  [243152811110] = {
     date = "2026-11-10",
     asOf = "2026-11-11",
 
