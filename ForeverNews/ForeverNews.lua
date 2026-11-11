@@ -1178,6 +1178,103 @@ end)
 newsBtn:SetScript("OnLeave", GameTooltip_Hide)
 
 ---------------------------------------------------------------------------
+-- "Update available" hint.
+-- The addon cannot go online, so players tell each other which version they run (guild, group, whisper).
+-- If someone has a newer version, a short hint is shown once for that version.
+---------------------------------------------------------------------------
+local COMM_PREFIX = "FNEWS"   -- addon message prefix (the game allows at most 16 characters)
+local getMeta = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+local ownVersion = (getMeta and getMeta(ADDON, "Version")) or "0"
+local registerPrefix = (C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix) or RegisterAddonMessagePrefix
+local sendMessage = (C_ChatInfo and C_ChatInfo.SendAddonMessage) or SendAddonMessage
+if registerPrefix then pcall(registerPrefix, COMM_PREFIX) end
+
+-- "0.1.7.4" -> { 0, 1, 7, 4 }
+local function VersionParts(v)
+    local parts = {}
+    for n in tostring(v):gmatch("%d+") do parts[#parts + 1] = tonumber(n) end
+    return parts
+end
+
+-- is version a newer than version b?  (0.1.8 is newer than 0.1.7.4, 0.1.8.1 is newer than 0.1.8)
+local function IsNewer(a, b)
+    local pa, pb = VersionParts(a), VersionParts(b)
+    for i = 1, math.max(#pa, #pb) do
+        local x, y = pa[i] or 0, pb[i] or 0
+        if x ~= y then return x > y end
+    end
+    return false
+end
+
+StaticPopupDialogs["FOREVERNEWS_UPDATE"] = {
+    text = "%s",
+    button1 = OKAY,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+local pendingVersion   -- a newer version we heard about during combat: shown when combat ends
+local function ShowUpdateHint(version, force)
+    local d = db()
+    if not force and d.updateHintFor and not IsNewer(version, d.updateHintFor) then return end   -- already told about this one
+    if InCombatLockdown() then pendingVersion = version; return end
+    if not force then d.updateHintFor = version end
+    local msg = L("Forever News %s is available (you have %s). Please update it in the CurseForge app."):format(version, ownVersion)
+    print("|cff4dccffForever News:|r " .. msg)
+    StaticPopup_Show("FOREVERNEWS_UPDATE", msg)
+end
+
+local lastSent = {}
+local function Broadcast(channel)
+    if not sendMessage then return end
+    if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return end   -- e.g. boss fights
+    local now = GetTime()
+    if lastSent[channel] and now - lastSent[channel] < 60 then return end   -- at most once a minute per channel
+    lastSent[channel] = now
+    pcall(sendMessage, COMM_PREFIX, "V:" .. ownVersion, channel)
+end
+
+local function BroadcastAll()
+    if IsInGuild and IsInGuild() then Broadcast("GUILD") end
+    if IsInRaid and IsInRaid() then Broadcast("RAID")
+    elseif IsInGroup and IsInGroup() then Broadcast("PARTY") end
+end
+
+local replied = {}
+local comm = CreateFrame("Frame")
+comm:RegisterEvent("CHAT_MSG_ADDON")
+comm:RegisterEvent("PLAYER_ENTERING_WORLD")
+comm:RegisterEvent("GROUP_ROSTER_UPDATE")
+comm:RegisterEvent("PLAYER_REGEN_ENABLED")
+comm:SetScript("OnEvent", function(_, event, prefix, text, channel, sender)
+    if event == "CHAT_MSG_ADDON" then
+        if prefix ~= COMM_PREFIX then return end
+        local v = tostring(text):match("^V:([%d%.]+)$")
+        if not v then return end
+        if IsNewer(v, ownVersion) then
+            ShowUpdateHint(v)
+        elseif IsNewer(ownVersion, v) and sender and sendMessage then
+            -- the sender runs an older version: tell them ours (whisper, at most once per 10 minutes per player)
+            local now = GetTime()
+            if not replied[sender] or now - replied[sender] > 600 then
+                replied[sender] = now
+                pcall(sendMessage, COMM_PREFIX, "V:" .. ownVersion, "WHISPER", sender)
+            end
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        if pendingVersion then
+            local v = pendingVersion
+            pendingVersion = nil
+            ShowUpdateHint(v)
+        end
+    else
+        C_Timer.After(5, BroadcastAll)   -- login, loading screens, group changes: tell the others our version (a little later)
+    end
+end)
+
+---------------------------------------------------------------------------
 -- Events / slash command
 ---------------------------------------------------------------------------
 local ev = CreateFrame("Frame")
@@ -1209,6 +1306,8 @@ SlashCmdList["FOREVERNEWS"] = function(msg)
         db().newsPos = nil
         PlaceNewsButton()
         print(L("|cff4dccffForever News:|r News button is back at its default spot beneath the chat buttons."))
+    elseif msg == "testupdate" then
+        ShowUpdateHint("99.0", true)   -- shows the "update available" hint with a made-up newer version
     else
         Toggle()
     end

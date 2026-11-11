@@ -13,6 +13,26 @@
 
 ForeverNewsSummaries = {
 
+  -- Announcement, November 8, 2026
+  [2406595] = {
+    date = "2026-11-08",
+    asOf = "2026-11-09",
+
+    en = {
+      overall = {
+        "Dungeon kill experience (XP) increased by 50%.",
+        "This hotfix went live around 11:05 PST on November 8.",
+      },
+    },
+
+    de = {
+      overall = {
+        "Erfahrungspunkte (XP) für Kills in Dungeons um 50 % erhöht.",
+        "Der Hotfix ist seit etwa 11:05 Uhr PST am 8. November live.",
+      },
+    },
+  },
+
   -- Launch patch, November 3, 2026
   [2026110309] = {
     date = "2026-11-03",
@@ -183,61 +203,99 @@ ForeverNewsSummaries = {
     },
   },
 
-  -- Hotfixes (continuously updated Blizzard article), newest block: November 6, 2026
+  -- Hotfixes (continuously updated Blizzard article), newest block: November 10, 2026
   [24315281] = {
-    date = "2026-11-06",
-    asOf = "2026-11-07",
+    date = "2026-11-10",
+    asOf = "2026-11-11",
 
     en = {
       overall = {
-        "Only small fixes, no big changes.",
-        "Dungeons: bugs fixed in Maraudon, Blackmaw Hold and The Drowned City.",
-        "Tauren: Plainsrunning can no longer be stacked in battlegrounds.",
-        "The Legacy talent The Quick and the Dead works properly now.",
-        "The Cooldown Manager now shows crowd control durations correctly.",
+        "Auction House: minimum deposit now 1 copper (was 1 silver).",
+        "Most quests level 48 and higher now also reward gold.",
+        "The Drowned City: enemies dealt about 30% too much damage, now fixed. Deathless Marrow (inside it): creature health and Fireball damage both -25%.",
+        "Dungeon kill experience (XP) still increased by 50% (hotfix from November 9).",
+        "Blackrock Depths: Heart of the Mountain can now be looted more than once.",
+        "All racial vendor mounts are now Bind-on-Pickup. Some crafted armor items now sell to vendors for less gold.",
       },
       classes = {
         DRUID = {
-          "Bloom now heals correctly. Several tooltips were fixed.",
+          "Omen of Clarity can activate again after swapping specializations (was broken).",
+          "Restoration: Nature's Swiftness now also makes Wild Growth instant.",
+          "Bloom now heals correctly. Several tooltips were fixed (Bear Form, Ravage, Swiftmend).",
         },
-        MAGE = {
-          "Research is gone, only Study remains. Arcane Blast now really lasts 18 sec.",
+        HUNTER = {
+          "Pet health bug fixed: pets now correctly have 115% of normal health (was wrongly 150%).",
+          "Arcane Shot now costs 11% of base Mana at every rank (previously differed by rank).",
+          "Beast Mastery: Summon Hawk also costs 11% of base Mana now. Hawk pet melee damage increased by about 80%.",
         },
-        ROGUE = {
-          "Shank now shows rank and combo points correctly.",
+        PALADIN = {
+          "Redoubt can now be tracked in the Cooldown Manager.",
+          "Consecration no longer stops dealing bonus damage if targets inside it despawned earlier.",
+        },
+        PRIEST = {
+          "The Revelation enchant no longer wrongly triggers from Vampiric Embrace healing.",
+          "Shadowform no longer breaks when casting Fear Ward. Power Infusion now correctly persists on allies.",
+        },
+        SHAMAN = {
+          "Weapon imbues and weapon totems can now be used at the same time (e.g. Windfury Weapon together with Windfury Totem).",
+          "Enhancement: Stormstrike damage reduced to 100% weapon damage (was 150%); cooldown now 8 sec (was 6 sec).",
+          "Enhancement: Mental Dexterity now converts 33/66/100% Intellect to Attack Power (was 50/100/150%).",
+          "Enhancement: Maelstrom Weapon now reduces cast time/Mana cost by 20% per stack (was 4/8/12/16/20%) and procs 6/7/8/9/10 times per minute by rank (was a flat 20/min at every rank).",
         },
         WARLOCK = {
-          "Voidwalker has about 40 more health. Soul Siphon no longer wrongly boosts Wrack.",
+          "Imp, Voidwalker, Incubus and Succubus all have about 15% more health; Imp's Firebolt damage (first 4 ranks) also increased.",
+          "Affliction: Wrack damage reduced by 30% and no longer boosts periodic damage directly - instead Corruption, Siphon Life and Bane of Agony tick 100% faster (twice as often) while Wrack is channeled.",
+          "Affliction: Soul Siphon's bonus to Drain Life/Drain Soul/Wrack now scales per active DoT (4/8/12% each, up to 36% max), instead of applying for any Affliction spell.",
+          "Destruction: Bane of Havoc now correctly triggers a global cooldown again (was bugged).",
         },
         WARRIOR = {
-          "The Reckless Swings tooltip was fixed.",
+          "Arms: Sweeping Strikes no longer loses charges if the second target isn't hit.",
         },
       },
     },
 
     de = {
       overall = {
-        "Nur kleine Fehler behoben, keine großen Änderungen.",
-        "Dungeons: Fehler in Maraudon, Blackmaw Hold und The Drowned City behoben.",
-        "Tauren: Plainsrunning lässt sich im Schlachtfeld nicht mehr stapeln.",
-        "Das Legacy-Talent The Quick and the Dead geht jetzt richtig.",
-        "Der Cooldown Manager zeigt die Dauer von Kontrollzaubern richtig an.",
+        "Auktionshaus: Mindestkaution jetzt 1 Kupfer (vorher 1 Silber).",
+        "Die meisten Quests ab Level 48 geben jetzt zusätzlich Gold.",
+        "The Drowned City: Gegner machten etwa 30 % zu viel Schaden, jetzt behoben. Deathless Marrow (darin): Leben der Gegner und Schaden von Fireball je um 25 % reduziert.",
+        "Dungeon-Erfahrung (XP) weiterhin um 50 % erhöht (Hotfix vom 9. November).",
+        "Blackrock Depths: Heart of the Mountain kann jetzt mehrfach geplündert werden.",
+        "Reit-Mounts von Völkern sind jetzt Bind-on-Pickup. Manche gefertigte Rüstung bringt beim Verkauf an Händler weniger Gold.",
       },
       classes = {
         DRUID = {
-          "Bloom heilt jetzt richtig. Mehrere Tooltips wurden korrigiert.",
+          "Omen of Clarity funktioniert nach einem Spezialisierungswechsel wieder (war vorher kaputt).",
+          "Wiederherstellung: Nature's Swiftness macht jetzt auch Wild Growth sofort wirksam.",
+          "Bloom heilt jetzt richtig. Mehrere Tooltip-Fehler behoben (Bear Form, Ravage, Swiftmend).",
         },
-        MAGE = {
-          "Research ist weg, nur Study bleibt. Arcane Blast hält jetzt wirklich 18 Sek.",
+        HUNTER = {
+          "Pet-Fehler behoben: Pets haben jetzt korrekt 115 % ihres normalen Lebens (vorher fälschlich 150 %).",
+          "Arcane Shot kostet jetzt bei jedem Rang 11 % des Grundmana (vorher je Rang unterschiedlich).",
+          "Beast Mastery: Summon Hawk kostet jetzt ebenfalls 11 % Grundmana. Nahkampfschaden des Hawk-Pets um etwa 80 % erhöht.",
         },
-        ROGUE = {
-          "Shank zeigt Rang und Combopunkte richtig an.",
+        PALADIN = {
+          "Redoubt lässt sich jetzt im Cooldown Manager verfolgen.",
+          "Consecration hört nicht mehr auf, Bonusschaden zu machen, wenn Ziele darin vorher verschwunden sind.",
+        },
+        PRIEST = {
+          "Das Revelation-Enchant wird nicht mehr fälschlich durch Vampiric Embrace-Heilung ausgelöst.",
+          "Shadowform bricht nicht mehr beim Wirken von Fear Ward. Power Infusion hält jetzt korrekt auf Verbündeten an.",
+        },
+        SHAMAN = {
+          "Waffenverzauberungen (Weapon Imbues) und Waffentotems lassen sich jetzt gleichzeitig nutzen (z. B. Windfury Weapon zusammen mit Windfury Totem).",
+          "Verstärker: Stormstrike-Schaden auf 100 % Waffenschaden reduziert (vorher 150 %); Abklingzeit jetzt 8 Sek. (vorher 6 Sek.).",
+          "Verstärker: Mental Dexterity wandelt jetzt 33/66/100 % Intelligenz in Angriffskraft um (vorher 50/100/150 %).",
+          "Verstärker: Maelstrom Weapon verringert Zauberzeit/Manakosten jetzt um 20 % pro Stapel (vorher 4/8/12/16/20 %) und löst je nach Rang 6/7/8/9/10 Mal pro Minute aus (vorher pauschal 20 Mal/Minute bei jedem Rang).",
         },
         WARLOCK = {
-          "Voidwalker hat etwa 40 Leben mehr. Soul Siphon macht Wrack nicht mehr fälschlich stärker.",
+          "Imp, Voidwalker, Incubus und Succubus haben alle etwa 15 % mehr Leben; Imp's Firebolt-Schaden (erste 4 Ränge) ebenfalls erhöht.",
+          "Gebrechen: Wrack-Schaden um 30 % reduziert und erhöht nicht mehr direkt den Schaden über Zeit - stattdessen ticken Corruption, Siphon Life und Bane of Agony während des Kanalisierens 100 % schneller (doppelt so oft).",
+          "Gebrechen: Der Bonus von Soul Siphon auf Drain Life/Drain Soul/Wrack richtet sich jetzt nach aktiven DoTs (je 4/8/12 %, maximal 36 %), statt nach irgendeinem Gebrechen-Zauber.",
+          "Zerstörung: Bane of Havoc löst jetzt wieder korrekt die globale Abklingzeit aus (war fehlerhaft).",
         },
         WARRIOR = {
-          "Der Tooltip von Reckless Swings wurde korrigiert.",
+          "Arms: Sweeping Strikes verliert keine Ladungen mehr, wenn kein zweites Ziel getroffen wird.",
         },
       },
     },

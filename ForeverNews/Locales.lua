@@ -36,6 +36,7 @@ ForeverNewsLocales = {
     ["Patch notes as of %s"] = "Patch Notes von %s",
     ["Announcement of %s"] = "Ankündigung vom %s",
     ["Key points"] = "Das Wichtigste",
+    ["Forever News %s is available (you have %s). Please update it in the CurseForge app."] = "Forever News %s ist verfügbar (du hast %s). Bitte über die CurseForge-App aktualisieren.",
     ["Written by an AI"] = "Von einer KI geschrieben",
     ["Original patch notes (Blizzard)"] = "Originale Patch Notes (Blizzard)",
     ["Short summary by an AI. The details below are what counts."] = "Kurz erklärt von einer KI. Die Details unten gelten.",
