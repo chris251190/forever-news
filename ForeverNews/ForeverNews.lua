@@ -76,10 +76,20 @@ local function db()
     return d
 end
 
+-- An entry counts as read only while it is unchanged since you read it. The read mark stores the entry's date,
+-- so Blizzard's hotfix article (one page that grows, its date moves on) turns "unread" again when it gets news.
+-- Old marks (just "true", from earlier versions) count as read for entries up to 2026-11-08 only.
+local function IsRead(item)
+    local mark = db().read[item.id]
+    if mark == nil then return false end
+    if mark == true then return tostring(item.date) <= "2026-11-08" end
+    return mark == item.date
+end
+
 local function UnreadCount()
     local n = 0
     for _, item in ipairs(data.items) do
-        if not db().read[item.id] then n = n + 1 end
+        if not IsRead(item) then n = n + 1 end
     end
     return n
 end
@@ -107,8 +117,26 @@ local function SectionVisible(sec, classFilter)
     return classFilter == "ALL"
 end
 
+-- Blizzard's hotfix article is ONE page that keeps growing: every section says on which day it was added
+-- ("Cooldown Manager / November 6, 2026"). This splits the day off the end: returns the rest and the day as "2026-11-06".
+local MONTH_NUMBER = {}
+for i, name in ipairs(EN_MONTHS) do MONTH_NUMBER[name] = i end
+local function SplitDay(s)
+    local day = (s or ""):match("(%a+ %d+, %d%d%d%d)$")
+    local month, d, y = (day or ""):match("^(%a+) (%d+), (%d+)$")
+    if not (month and MONTH_NUMBER[month]) then return s or "", nil end
+    local rest = (s:sub(1, #s - #day):gsub("%s*/%s*$", ""))
+    return rest, ("%04d-%02d-%02d"):format(tonumber(y), MONTH_NUMBER[month], tonumber(d))
+end
+
 local function AddSections(blocks, item, classFilter, query)
-    local lastKey, added = nil, 0
+    -- if the entry spans several days (the hotfix article), every day gets its own heading, newest first
+    local dayCount, seen = 0, {}
+    for _, sec in ipairs(item.sections) do
+        local _, iso = SplitDay(sec.s)
+        if iso and not seen[iso] then seen[iso] = true; dayCount = dayCount + 1 end
+    end
+    local lastKey, lastDay, added = nil, nil, 0
     for _, sec in ipairs(item.sections) do
         if SectionVisible(sec, classFilter) then
             local items = {}
@@ -126,8 +154,13 @@ local function AddSections(blocks, item, classFilter, query)
                 else
                     head, key = L(sec.g ~= "" and sec.g or "General"), "g:" .. sec.g
                 end
-                if sec.s ~= "" then subParts[#subParts + 1] = L(sec.s) end
+                local subText, iso = SplitDay(sec.s)   -- the day is shown in the heading / title instead
+                if subText ~= "" then subParts[#subParts + 1] = L(subText) end
 
+                if dayCount > 1 and iso and iso ~= lastDay then
+                    blocks[#blocks + 1] = { k = "day", text = LongDate(iso) }
+                    lastDay, lastKey = iso, nil   -- a new day starts: show the group heading again
+                end
                 if key ~= lastKey then
                     blocks[#blocks + 1] = { k = sec.c ~= "" and "class" or "group", text = head, token = sec.c }
                     lastKey = key
@@ -189,6 +222,7 @@ local function ToPlain(blocks)
         elseif k == "blank" then out[#out + 1] = ""
         elseif k == "hdr" then out[#out + 1] = ""; out[#out + 1] = "=== " .. b.text .. " ==="
         elseif k == "ohdr" then out[#out + 1] = ""; out[#out + 1] = "=== " .. b.text .. " ==="
+        elseif k == "day" then out[#out + 1] = ""; out[#out + 1] = "######## " .. b.text .. " ########"
         elseif k == "note" then out[#out + 1] = "(" .. b.text .. ")"
         elseif k == "class" or k == "group" then out[#out + 1] = ""; out[#out + 1] = "== " .. b.text .. " =="
         elseif k == "sub" then out[#out + 1] = "-- " .. b.text .. " --"
@@ -269,6 +303,7 @@ local function ToRich(blocks, skipHead)
         elseif k == "blank" then out[#out + 1] = ""
         elseif k == "hdr" then out[#out + 1] = ""; out[#out + 1] = "|cff4dd2ff" .. EscapePipes(b.text) .. "|r"
         elseif k == "ohdr" then out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"   -- heading of Blizzard's original text
+        elseif k == "day" then out[#out + 1] = ""; out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"   -- one day of a growing article
         elseif k == "note" then
             if not b.plainOnly then out[#out + 1] = "|cffb0b0b0" .. EscapePipes(b.text) .. "|r" end   -- plainOnly: only in the copy text
         elseif k == "patch" then out[#out + 1] = ""; out[#out + 1] = "|cffffd100" .. EscapePipes(b.text) .. "|r"
@@ -801,7 +836,7 @@ end
 
 local function UpdateListMarks()
     for i, b in ipairs(buttons) do
-        local isRead = db().read[data.items[i].id]
+        local isRead = IsRead(data.items[i])
         b.selected:SetShown(i == selectedIndex)
         b.dot:SetShown(not isRead)
         -- unread = gold, already read = soft grey (so new entries stand out at a glance)
@@ -813,7 +848,7 @@ local function ShowItem(index)
     local item = data.items[index]
     if not item then return end
     selectedIndex = index
-    db().read[item.id] = true
+    db().read[item.id] = item.date   -- remember the state we have read (see IsRead)
     UpdateListMarks()
     refresh()
     if ForeverNewsMinimapButton then ForeverNewsMinimapButton.UpdateBadge() end
